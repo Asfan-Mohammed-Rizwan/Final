@@ -92,6 +92,7 @@ def process_frames():
     st.title('Object Detection with Streamlit')
     st.markdown('Click the button below to start capturing frames from your webcam.')
     if st.button('Start Camera'):
+        FRAME_WINDOW = st.image([])
         video_capture = cv2.VideoCapture(0)
         last_capture_time = time.time()
         while True:
@@ -109,27 +110,8 @@ def process_frames():
                 )
                 if predictions:
                     image_with_boxes, final_detections = draw_boxes(frame.copy(), predictions, nms_threshold=0.5)
-                    client = texttospeech_v1.TextToSpeechClient()
-                    for box, label, confidence in final_detections:
-                        input_text = texttospeech_v1.SynthesisInput(text=f"{label}: {confidence:.2f}")
-                        voice = texttospeech_v1.VoiceSelectionParams(
-                            language_code="en-US",
-                            name="en-US-Standard-C"
-                        )
-                        audio_config = texttospeech_v1.AudioConfig(
-                            audio_encoding=texttospeech_v1.AudioEncoding.LINEAR16,
-                            speaking_rate=1.0
-                        )
-                        response = client.synthesize_speech(
-                            input=input_text, voice=voice, audio_config=audio_config
-                        )
-                        # Initialize a Sound object from the audio content using pygame
-                        pygame.mixer.init()
-                        pygame.mixer.music.load(BytesIO(response.audio_content))
-                        # Play the audio
-                        pygame.mixer.music.play()
                     # Display the image with bounding boxes for the current frame
-                    st.image(image_with_boxes, caption='Detected Objects', use_column_width=True)
+                    FRAME_WINDOW.image(image_with_boxes, caption='Detected Objects', use_column_width=True)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         video_capture.release()
